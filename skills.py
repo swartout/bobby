@@ -15,7 +15,7 @@ class TurnLightsOn:
         return "Turns the lights on to full brightness in the room."
     
     def doSkill():
-        print("Turning lights on")
+        return "Turning lights on"
 
 class TurnLightsOff:
     def name():
@@ -25,7 +25,7 @@ class TurnLightsOff:
         return "Turns the lights off in the room."
     
     def doSkill():
-        print("Turning lights off")
+        return "Turning lights off"
 
 class PlayMusic:
     def name():
@@ -35,7 +35,7 @@ class PlayMusic:
         return "Plays music from a playlist."
     
     def doSkill():
-        print("Playing music")
+        return "Playing music"
 
 class StopMusic:
     def name():
@@ -45,4 +45,4 @@ class StopMusic:
         return "Stops playing music."
     
     def doSkill():
-        print("Stopping music")
+        return "Stopping music"
