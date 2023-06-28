@@ -1,5 +1,0 @@
-{
-	"description": "A device that measures temperature and humidity.",
-	"parameters": "readonly",
-	"script": "thermometer_hygrometer.py"
-}

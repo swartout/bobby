@@ -1,117 +1,105 @@
-# utility functions
 import openai
-import skills
-import os
-import json
-import subprocess
+from abc import ABC, abstractmethod
+import importlib
 
-class Skill:
-    def __init__(self, path):
-        with open(path) as f:
-            skillData = json.load(f)
-            self.skillName = path.replace("skills/", "").replace("/skill.json","")
-            self.skillDescription = skillData["description"]
-            self.skillScript = path.replace("skill.json", skillData["script"])
-            self.skillParameters = skillData["parameters"]
+class Skill(ABC):
+    """An Abstract Base Class for a skill that the virtual assistant can use.
+    Users must subclass Skill to create their own skills for the virtual assistant.
+    These skills should be placed in the skills.py file.
+
+    i.e.
     
+    class TurnLightsOff(Skill):
+        def name(self):
+            return "TurnLightsOff"
+
+        def description(self):
+            return "Turns the lights completly off in the main bedroom."
+
+        def doSkill(self):
+            # turn the lights off here!
+            return "The lights have been successfully turned off"
+    """
+
+    @abstractmethod
     def name(self):
-        return self.skillName
+        """Gets the name of this Skill function.
         
+        Returns:
+            The name of this Skill
+        """
+        pass
+
+    @abstractmethod
     def description(self):
-        return self.skillDescription
-    
-    def parameters(self):
-        return self.skillParameters
-    
-    def execute(self, arguments):
-        if self.parameters() != "readonly":
-            args = ' '.join([f'--{key}={value}' for key, value in arguments.items()])
-            subprocess_list = ["python", self.skillScript]
-            for arg in args.split(" "):
-                subprocess_list.append(arg)
-            return subprocess.check_output(subprocess_list).decode().strip()
-            #raise Exception("Skill " + self.name() + " requires parameters, but none given. (Accessor called as if mutator)")
-        else:
-            return subprocess.check_output(["python", self.skillScript, "--get"]).decode().strip()
-    
-    def openaiFunc(self):
-        function_dict = {
-            "name": self.skillName.replace(" ", "_").lower(),  # function names usually don't have spaces
-            "description": self.skillDescription,
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
+        """A description of this Skill function.
+        
+        Returns:
+            A description of this Skill
+        """
+        pass
 
-        if self.parameters() == "readonly":
-            return function_dict
+    @abstractmethod
+    def do_skill(self):
+        """Runs this skill.
+        
+        Returns:
+            A string representing the outcome of this running this skill.  For
+            example, this could be a success, error, or state message.
+        """
+        pass
 
-        for param in self.parameters():
-            param_name = param["name"]
-            function_dict["parameters"]["properties"][param_name] = {
-                "description": param["description"]
-            }
 
-            if "range" in param:
-                # if the parameter's range is a list of string options
-                if isinstance(param["range"], list) and all(isinstance(i, str) for i in param["range"]):
-                    function_dict["parameters"]["properties"][param_name]["type"] = "string"
-                    function_dict["parameters"]["properties"][param_name]["enum"] = param["range"]
-                # if the parameter's range is an integer range
-                elif isinstance(param["range"], list) and len(param["range"]) == 2 and all(isinstance(i, int) for i in param["range"]):
-                    function_dict["parameters"]["properties"][param_name]["type"] = "integer"
-                    function_dict["parameters"]["properties"][param_name]["minimum"] = param["range"][0]
-                    function_dict["parameters"]["properties"][param_name]["maximum"] = param["range"][1]
+class SkillHelper:
+    """Utility class for managing Skills"""
 
-            if param.get("required", False):
-                function_dict["parameters"]["required"].append(param_name)
-
-        return function_dict
-
-class SkillHelper: # test stub class
-    def __init__(self):
+    def __init__(self, skills):
+        """Construct a new SkillHelper.
+        
+        Args:
+            skills: a list of strings representing the names of skill classes
+                    i.e.  ['TurnLightsOn', 'TurnLightsOff', 'PlayMusic']
+        """
         self.skills = []
-        skillDirs = os.listdir("skills")
-        for skill in skillDirs:
-            self.skills.append(Skill("skills/" + skill + "/skill.json"))
+        s = importlib.import_module('skills')
+        for skill_name in skills:
+            skill = getattr(s, skill_name)
+            if not issubclass(skill, Skill):
+                raise Exception(f'Skill: {skill_name} does not subclass Skill')
+            new_skill = skill()
+            self.skills.append(skill)
     
-    def getSkills(self):
-        return {skill.name(): skill.description() for skill in self.skills}
-    
-    def doSkill(self, skill, arguments):
+    def do_skill(self, skill, params={}):
+        """Run a skill.
+        
+        Args:
+            skill: the string function name of the skill to be run
+            params: (optional) a dictionary mapping parameter names to values
+        """
         for s in self.skills:
             if s.name() == skill:
-                return s.execute(arguments)
-        else:
-            print(f"Class '{skill}' does not exist.")
-    
-    def gatherFunctions(self):
-        functions_list = []
-        for s in self.skills:
-            functions_list.append(s.openaiFunc())
-        return functions_list
+                # TODO: implement better argument parsing
+                return s.do_skill(**params)
+        raise Exception('Skill name: {skill} not found')
 
-# DEPRECATED - See SkillHelper.gatherFunctions()
-def get_func(name, description):
-    """Formats a skill into a function for OpenAI's API.
-    
-    Args:
-        name: The name of the skill.
-        description: The description of the skill.
-    
-    Returns:
-        A dictionary representing the skill as a function, formatted for OpenAI's API.
-    """
-    return {
-        "name": name,
-        "description": description,
-        "parameters": {
-            "type": "object",
-            "properties": {},
-        },
-    }
+    def get_skills(self):
+        """Get all skills formatted as OpenAI functions.
+        
+        Returns:
+            A dictionary of all skills formatted as OpenAI functions
+        """
+        # TODO: for now, I'm not supporting parameters in functions
+        skill_funcs = []
+        for s in self.skills:
+            skill_funcs.append({
+                    "name": s.name(),
+                    "description": s.description(),
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                    },
+                })
+        return skill_funcs
 
 
 def get_completion(messages, functions, model):
@@ -123,12 +111,19 @@ def get_completion(messages, functions, model):
         model: The model to use for the API.
         
     Returns:
-        An OpenAI completion."""
-    return openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        functions=functions
-    )['choices'][0]
+        An OpenAI completion.
+    """
+    if len(functions) != 0:
+        return openai.ChatCompletion.create(
+            model=model,
+            messages=messages,
+            functions=functions
+        )['choices'][0]
+    else:
+        return openai.ChatCompletion.create(
+            model=model,
+            messages=messages,
+        )['choices'][0]
 
 
 SYSTEM_MESSAGE = {
