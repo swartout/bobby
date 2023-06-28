@@ -1,0 +1,12 @@
+{
+	"description": "The overhead lights in the master bedroom.",
+	"parameters": [
+		{
+			"name": "mode",
+			"description": "The state to set the bedroom lights to, on or off.",
+			"range": ["on", "off"],
+			"required": true
+		}
+	],
+	"script": "bedroom_lights.py"
+}
