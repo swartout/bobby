@@ -1,8 +1,9 @@
 import os
+import json
 import openai
 from utils import get_completion, SkillHelper, SYSTEM_MESSAGE
 
-# ----------------------------------- CONFIG --------------------------- #
+# ---------------------------------- CONFIG ---------------------------------- #
 
 # the model to use - it should be one trained on function calling
 MODEL = "gpt-3.5-turbo-0613"
@@ -16,10 +17,11 @@ SKILLS = [
     'TurnLightsOff',
     'TurnLightsOn',
     'PlayMusic',
-    'StopMusic'
+    'StopMusic',
+    'SetVolume'
 ]
 
-# ----------------------------------- CONFIG --------------------------- #
+# ---------------------------------- CONFIG ---------------------------------- #
 
 
 if API_KEY is None:
@@ -45,7 +47,8 @@ while True:
         called_function_args = completion['message']["function_call"]["arguments"]
         print("Function call: " + called_function_name + ", Args: " + called_function_args)
         messages.append(completion['message'])
-        skill_info = skill_helper.do_skill(called_function_name)
+        params = json.loads(called_function_args)
+        skill_info = skill_helper.do_skill(called_function_name, params=params)
         messages.append({"role": "function", "name": called_function_name, "content": skill_info})
         print("Function info: " + str(skill_info))
     elif completion['finish_reason'] == 'stop':
