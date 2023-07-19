@@ -1,6 +1,8 @@
+# utility functions
 import openai
 from abc import ABC, abstractmethod
 import importlib
+from inspect import signature
 
 class Skill(ABC):
     """An Abstract Base Class for a skill that the virtual assistant can use.
@@ -33,6 +35,10 @@ class Skill(ABC):
     @abstractmethod
     def description(self):
         """A description of this Skill function.
+
+        This should explain what this Skill does, what parameters it takes, and
+        what it returns. This description will be shown to the model when it is
+        deciding what function to call.
         
         Returns:
             A description of this Skill
@@ -42,6 +48,11 @@ class Skill(ABC):
     @abstractmethod
     def do_skill(self):
         """Runs this skill.
+        
+        When overriding this method you are encouraged to use type annotations
+        to specify the types of the parameters. Optional values are also
+        supported.  For now, no description is used for the parameters, this
+        should be specified in the description method.
         
         Returns:
             A string representing the outcome of this running this skill.  For
@@ -67,7 +78,7 @@ class SkillHelper:
             if not issubclass(skill, Skill):
                 raise Exception(f'Skill: {skill_name} does not subclass Skill')
             new_skill = skill()
-            self.skills.append(skill)
+            self.skills.append(new_skill)
     
     def do_skill(self, skill, params={}):
         """Run a skill.
@@ -91,12 +102,26 @@ class SkillHelper:
         # TODO: for now, I'm not supporting parameters in functions
         skill_funcs = []
         for s in self.skills:
+            params = {}
+            required = []
+            sig = signature(s.do_skill)
+            for key, value in sig.parameters.items():
+                if value.default == value.empty:
+                    required.append(key)
+                if value.annotation != value.empty:
+                    params[key] = {
+                        "type": str(value.annotation),
+                    }
+                else:
+                    params[key] = {}
+
             skill_funcs.append({
                     "name": s.name(),
                     "description": s.description(),
                     "parameters": {
                         "type": "object",
-                        "properties": {},
+                        "properties": params,
+                        "required": required
                     },
                 })
         return skill_funcs
