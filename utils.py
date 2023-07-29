@@ -127,30 +127,6 @@ class SkillHelper:
         return skill_funcs
 
 
-def get_completion(messages, functions, model):
-    """Gets a completion from OpenAI's API.
-    
-    Args:
-        messages: A list of messages to send to the API.
-        functions: A list of functions to send to the API.
-        model: The model to use for the API.
-        
-    Returns:
-        An OpenAI completion.
-    """
-    if len(functions) != 0:
-        return openai.ChatCompletion.create(
-            model=model,
-            messages=messages,
-            functions=functions
-        )['choices'][0]
-    else:
-        return openai.ChatCompletion.create(
-            model=model,
-            messages=messages,
-        )['choices'][0]
-
-
 SYSTEM_MESSAGE = {
     "role": "system",
     "content":
