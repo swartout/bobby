@@ -24,15 +24,6 @@ class Skill(ABC):
     """
 
     @abstractmethod
-    def name(self):
-        """Gets the name of this Skill function.
-        
-        Returns:
-            The name of this Skill
-        """
-        pass
-
-    @abstractmethod
     def description(self):
         """A description of this Skill function.
 
@@ -57,6 +48,18 @@ class Skill(ABC):
         Returns:
             A string representing the outcome of this running this skill.  For
             example, this could be a success, error, or state message.
+        """
+        pass
+
+    def get_state(self):
+        """Get the state of this skill.
+        
+        This method is called occasionally to get the state of this skill.  This
+        state is then passed to the model when it is deciding what function to
+        call.  This method is optional and is not called if not implemented.
+
+        Returns:
+            A string representing the state of this skill.
         """
         pass
 
@@ -88,8 +91,7 @@ class SkillHelper:
             params: (optional) a dictionary mapping parameter names to values
         """
         for s in self.skills:
-            if s.name() == skill:
-                # TODO: implement better argument parsing
+            if s.__class__.__name__ == skill:
                 return s.do_skill(**params)
         raise Exception('Skill name: {skill} not found')
 
@@ -99,7 +101,6 @@ class SkillHelper:
         Returns:
             A dictionary of all skills formatted as OpenAI functions
         """
-        # TODO: for now, I'm not supporting parameters in functions
         skill_funcs = []
         for s in self.skills:
             params = {}
@@ -116,7 +117,7 @@ class SkillHelper:
                     params[key] = {}
 
             skill_funcs.append({
-                    "name": s.name(),
+                    "name": s.__class__.__name__,
                     "description": s.description(),
                     "parameters": {
                         "type": "object",
@@ -125,6 +126,19 @@ class SkillHelper:
                     },
                 })
         return skill_funcs
+
+    def get_state(self):
+        """Get the state of all skills.
+        
+        Returns:
+            A dictionary mapping skill names to their states
+        """
+        states = {}
+        for s in self.skills:
+            state = s.get_state()
+            if state:
+                states[s.__class__.__name__] = state
+        return states
 
 
 SYSTEM_MESSAGE = {
