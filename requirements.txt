@@ -4,3 +4,6 @@ playsound
 PyObjC
 pvporcupine
 pvrecorder
+SpeechRecognition
+mpv
+pyaudio

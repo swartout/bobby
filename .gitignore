@@ -1,2 +1,13 @@
 .venv/
+# Ignore .bak files
+*.bak
+
+# Ignore __pycache__ directories
+__pycache__/
+
+# Ignore other system-generated files
+.DS_Store
+Thumbs.db
+
+# Wake word model
 heybobby.ppn
