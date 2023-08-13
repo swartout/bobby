@@ -1,6 +1,7 @@
 # (Basic) Setup
 
 - Install requirements using `pip install -r requirements.txt` (ideally in a virtual environment)
+    - If you have a Mac, `pip install PyObjC` is also required
 - Download a Picovoice Porcupine wake word model for the phrase "Hey Bobby" from
   [here](https://console.picovoice.ai/), unzip it, and rename it to
   `heybobby.ppn`. Place it in the directory.

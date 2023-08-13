@@ -1,7 +1,6 @@
 openai
 elevenlabs
 playsound
-PyObjC
 pvporcupine
 pvrecorder
 SpeechRecognition
