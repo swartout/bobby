@@ -4,6 +4,8 @@ import openai
 from bobby import Bobby
 from speak import Speak
 from utils import SkillHelper, SYSTEM_MESSAGE
+import pvporcupine
+from pvrecorder import PvRecorder
 
 # ---------------------------------- CONFIG ---------------------------------- #
 
@@ -31,12 +33,34 @@ if API_KEY is None:
     if API_KEY is None:
         raise Exception("Missing OPENAI_API_KEY environment variable and none provided in config")
 openai.api_key = API_KEY
+
+PORCUPINE_API_KEY = os.getenv("PORCUPINE_API_KEY")
+if PORCUPINE_API_KEY is None:
+    raise Exception("Missing PORCUPINE_API_KEY environment variable")
+
+ppn = pvporcupine.create(
+    access_key=PORCUPINE_API_KEY,
+    keyword_paths=['heybobby.ppn']
+)
+
+recorder = PvRecorder(device_index=-1, frame_length=512)
     
 skill_helper = SkillHelper(SKILLS)
 bobby = Bobby(SYSTEM_MESSAGE, skill_helper.get_skills(), MODEL)
 speak = Speak()
 
 while True:
+    # wait for wake word
+    print("Listening for wake word...")
+    recorder.start()
+    while True:
+        pcm = recorder.read()
+        keyword_index = ppn.process(pcm)
+        if keyword_index >= 0:
+            print("Wake word detected!")
+            recorder.stop()
+            break
+
     speak.ding()
     messages = [SYSTEM_MESSAGE]
 
