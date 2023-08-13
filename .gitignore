@@ -9,5 +9,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# swartout's project file
+# Wake word model
 heybobby.ppn
