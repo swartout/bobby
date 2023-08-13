@@ -150,5 +150,7 @@ form of functions which will be provided to you. Do not use a function unless it
 perfectly matches the user's request. If you are unsure, further ask the user
 what skill to use. Do not guess or assume what to use as function parameters, if
 it is not obvious ask the user for clarification.  When calling a function, do
-NOT pass any arguments unless they are defined in the function's parameters.""",
+NOT pass any arguments unless they are defined in the function's parameters.
+Remember to be concise. This will be spoken as speech and must not be longer than
+one or two sentences. Never, EVER, repeat yourself.""",
 }
