@@ -45,6 +45,8 @@ ppn = pvporcupine.create(
 )
 
 recorder = PvRecorder(device_index=-1, frame_length=512)
+
+listen = Listen(API_KEY)
     
 skill_helper = SkillHelper(SKILLS)
 bobby = Bobby(SYSTEM_MESSAGE, skill_helper.get_skills(), MODEL)
@@ -66,8 +68,9 @@ while True:
     messages = [SYSTEM_MESSAGE]
 
     # get user input
-    print("User: ", end="")
-    message = {"role": "user", "content": input()}
+    voice_input = listen.listen()
+    print("User: " + voice_input)
+    message = {"role": "user", "content": voice_input}
     while True:
         completion = bobby.get_response(message)
 
@@ -89,7 +92,8 @@ while True:
             print("Bobby: " + completion['message']['content'])
             speak.speak(completion['message']['content'])
             message = completion['message']
-            print("User: ", end="")
-            message = {"role": "user", "content": input()}
+            voice_input = listen.listen()
+            print("User: " + voice_input)
+            message = {"role": "user", "content": voice_input}
         else:
             raise Exception("Invalid response type: not a function call or stop")
