@@ -2,6 +2,7 @@ import os
 import json
 import openai
 from bobby import Bobby
+from speak import Speak
 from utils import SkillHelper, SYSTEM_MESSAGE
 
 # ---------------------------------- CONFIG ---------------------------------- #
@@ -32,6 +33,7 @@ openai.api_key = API_KEY
     
 skill_helper = SkillHelper(SKILLS)
 bobby = Bobby(SYSTEM_MESSAGE, skill_helper.get_skills(), MODEL)
+speak = Speak()
 messages = [SYSTEM_MESSAGE]
 
 # get user input
@@ -53,6 +55,7 @@ while True:
         print("Function info: " + str(skill_info))
     elif completion['finish_reason'] == 'stop':
         print("Bobby: " + completion['message']['content'])
+        speak.speak(completion['message']['content'])
         message = completion['message']
         print("User: ", end="")
         message = {"role": "user", "content": input()}
