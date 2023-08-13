@@ -16,6 +16,7 @@ API_KEY = None
 # list of skill names (string) to allow the virtual assistant to use, these
 # skills must be placed in the skills.py file and subclass utils.Skill
 SKILLS = [
+    'EndConversation',
     'TurnLightsOff',
     'TurnLightsOn',
     'PlayMusic',
@@ -47,9 +48,13 @@ while True:
     if completion['finish_reason'] == 'function_call':
         called_function_name = completion['message']["function_call"]["name"]
         called_function_args = completion['message']["function_call"]["arguments"]
-        print("Function call: " + called_function_name + ", Args: " + called_function_args)
         message = completion['message']
         params = json.loads(called_function_args)
+        if called_function_name == "EndConversation":
+            print("Bobby: " + params['message'])
+            speak.speak(params['message'])
+            break
+        print("Function call: " + called_function_name + ", Args: " + called_function_args)
         skill_info = skill_helper.do_skill(called_function_name, params=params)
         message = {"role": "function", "name": called_function_name, "content": skill_info}
         print("Function info: " + str(skill_info))

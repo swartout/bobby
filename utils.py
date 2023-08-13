@@ -152,5 +152,6 @@ what skill to use. Do not guess or assume what to use as function parameters, if
 it is not obvious ask the user for clarification.  When calling a function, do
 NOT pass any arguments unless they are defined in the function's parameters.
 Remember to be concise. This will be spoken as speech and must not be longer than
-one or two sentences. Never, EVER, repeat yourself.""",
+one or two sentences. Never, EVER, repeat yourself. If the user is ending the
+conversation or not asking a question, call the EndConversation function.""",
 }
