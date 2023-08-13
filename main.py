@@ -3,6 +3,7 @@ import json
 import openai
 from bobby import Bobby
 from speak import Speak
+from listen import Listen
 from utils import SkillHelper, SYSTEM_MESSAGE
 
 # ---------------------------------- CONFIG ---------------------------------- #
@@ -35,6 +36,7 @@ openai.api_key = API_KEY
 skill_helper = SkillHelper(SKILLS)
 bobby = Bobby(SYSTEM_MESSAGE, skill_helper.get_skills(), MODEL)
 speak = Speak()
+listen = Listen(API_KEY)
 messages = [SYSTEM_MESSAGE]
 
 # get user input
@@ -43,7 +45,7 @@ message = {"role": "user", "content": input()}
 
 while True:
     completion = bobby.get_response(message)
-
+    
     # do different things if response is chat vs function
     if completion['finish_reason'] == 'function_call':
         called_function_name = completion['message']["function_call"]["name"]
