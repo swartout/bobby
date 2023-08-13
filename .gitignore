@@ -8,3 +8,6 @@ __pycache__/
 # Ignore other system-generated files
 .DS_Store
 Thumbs.db
+
+# swartout's project file
+heybobby.ppn

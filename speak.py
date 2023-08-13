@@ -1,5 +1,6 @@
 """Synthesizes speech from a string using Elevenlabs Text-to-Speech API."""
 from elevenlabs import generate, stream
+from playsound import playsound
 
 class Speak:
     """Speak class"""
@@ -26,3 +27,7 @@ class Speak:
             stream=True
         )
         stream(audio)
+
+    def ding(self):
+        """Play a ding sound"""
+        playsound('ding.mp3')
