@@ -64,15 +64,18 @@ while True:
             recorder.stop()
             break
 
-    speak.ding()
+    speak.hearing()
     messages = [SYSTEM_MESSAGE]
 
     # get user input
     voice_input = listen.listen()
+    speak.heard()
     print("User: " + voice_input)
     message = {"role": "user", "content": voice_input}
     while True:
+        speak.think()
         completion = bobby.get_response(message)
+        speak.stop_think()  # Stop the think sound
 
         # do different things if response is chat vs function
         if completion['finish_reason'] == 'function_call':
@@ -90,8 +93,11 @@ while True:
             print("Function info: " + str(skill_info))
         elif completion['finish_reason'] == 'stop':
             print("Bobby: " + completion['message']['content'])
+            print(completion)
             speak.speak(completion['message']['content'])
+            speak.done()
             message = completion['message']
+            speak.hearing()
             voice_input = listen.listen()
             print("User: " + voice_input)
             message = {"role": "user", "content": voice_input}
