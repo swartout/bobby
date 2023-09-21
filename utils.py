@@ -1,8 +1,10 @@
 # utility functions
-import openai
 from abc import ABC, abstractmethod
 import importlib
 from inspect import signature
+import sys
+import os
+from rich.console import Console
 
 class Skill(ABC):
     """An Abstract Base Class for a skill that the virtual assistant can use.
@@ -75,6 +77,8 @@ class SkillHelper:
                     i.e.  ['TurnLightsOn', 'TurnLightsOff', 'PlayMusic']
         """
         self.skills = []
+        self.last_used = None
+        self.num_last_used = 0
         s = importlib.import_module('skills')
         for skill_name in skills:
             skill = getattr(s, skill_name)
@@ -92,6 +96,15 @@ class SkillHelper:
         """
         for s in self.skills:
             if s.__class__.__name__ == skill:
+                if self.last_used == skill:
+                    self.num_last_used += 1
+                else:
+                    self.last_used = skill
+                    self.num_last_used = 1
+                if self.num_last_used > 3:
+                    console = Console()
+                    console.log(f"Skill: {skill} has been called too many times in a row.  Please try a different skill.")
+                    return f"Skill: {skill} has been called too many times in a row.  Please try a different skill."
                 return s.do_skill(**params)
         raise Exception('Skill name: {skill} not found')
 
@@ -139,6 +152,15 @@ class SkillHelper:
             if state:
                 states[s.__class__.__name__] = state
         return states
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stderr = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stderr.close()
+        sys.stderr = self._original_stderr
 
 
 SYSTEM_MESSAGE = {
