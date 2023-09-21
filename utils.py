@@ -153,15 +153,6 @@ class SkillHelper:
                 states[s.__class__.__name__] = state
         return states
 
-class HiddenPrints:
-    def __enter__(self):
-        self._original_stderr = sys.stderr
-        sys.stderr = open(os.devnull, 'w')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stderr.close()
-        sys.stderr = self._original_stderr
-
 
 SYSTEM_MESSAGE = {
     "role": "system",
