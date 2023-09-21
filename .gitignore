@@ -11,3 +11,6 @@ Thumbs.db
 
 # Wake word model
 heybobby.ppn
+
+# Ignore user-made skills
+skills.py

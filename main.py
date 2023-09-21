@@ -17,15 +17,7 @@ MODEL = "gpt-3.5-turbo-0613"
 # OpenAI API key - if left None, API_KEY will be the env variable OPENAI_API_KEY
 API_KEY = None 
 
-# list of skill names (string) to allow the virtual assistant to use, these
-# skills must be placed in the skills.py file and subclass utils.Skill
-SKILLS = [
-    'EndConversation', # required by default to end the conversation
-    'TurnLightsOff',
-    'TurnLightsOn',
-    'PlayMusic',
-    'StopMusic',
-]
+# Skills must be placed in the skills.py file, subclassing the Skill class in utils.py
 
 # ---------------------------------- CONFIG ---------------------------------- #
 
@@ -51,7 +43,7 @@ recorder = PvRecorder(device_index=-1, frame_length=512)
 
 listen = Listen(API_KEY)
     
-skill_helper = SkillHelper(SKILLS)
+skill_helper = SkillHelper()
 bobby = Bobby(SYSTEM_MESSAGE, skill_helper.get_skills(), MODEL)
 speak = Speak()
 

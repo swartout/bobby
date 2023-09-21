@@ -1,7 +1,7 @@
 # utility functions
 from abc import ABC, abstractmethod
 import importlib
-from inspect import signature
+from inspect import signature, getmembers, isclass
 import sys
 import os
 from rich.console import Console
@@ -66,26 +66,38 @@ class Skill(ABC):
         pass
 
 
+class EndConversation(Skill):
+    def description(self):
+        return """Ends the conversation. Use when the user's request has been fulfilled
+        and the conversation is over. The parameter message is the last thing spoken to
+        the user. Keep it brief."""
+    
+    def do_skill(self, message):
+        return "Ending conversation"
+
+
 class SkillHelper:
     """Utility class for managing Skills"""
 
-    def __init__(self, skills):
-        """Construct a new SkillHelper.
-        
-        Args:
-            skills: a list of strings representing the names of skill classes
-                    i.e.  ['TurnLightsOn', 'TurnLightsOff', 'PlayMusic']
-        """
-        self.skills = []
+    def __init__(self):
+        """Construct a new SkillHelper."""
+        self.skills = [EndConversation()]
         self.last_used = None
         self.num_last_used = 0
-        s = importlib.import_module('skills')
-        for skill_name in skills:
-            skill = getattr(s, skill_name)
-            if not issubclass(skill, Skill):
-                raise Exception(f'Skill: {skill_name} does not subclass Skill')
-            new_skill = skill()
-            self.skills.append(new_skill)
+        console = Console()
+        try:
+            s = importlib.import_module('skills')
+            skills = [x[0] for x in getmembers(s)]
+            for skill_name in skills:
+                skill = getattr(s, skill_name)
+                if isclass(skill) and issubclass(skill, Skill) and skill is not Skill:
+                    new_skill = skill()
+                    self.skills.append(new_skill)
+        except Exception as e:
+            console.log("No skills file found")
+        console.log(f"Loaded {len(self.skills)} skills")
+        for s in self.skills:
+            console.log(f'  {s.__class__.__name__}')
     
     def do_skill(self, skill, params={}):
         """Run a skill.
