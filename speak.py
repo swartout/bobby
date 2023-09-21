@@ -1,6 +1,8 @@
 """Synthesizes speech from a string using Elevenlabs Text-to-Speech API."""
 from elevenlabs import generate, stream
+import elevenlabs
 from playsound import playsound
+import uuid
 import wave
 import threading
 import pyaudio
@@ -56,6 +58,22 @@ class Speak:
             stream=True
         )
         stream(audio)
+        
+    def save(self, text):
+        """Speak text (save to file)
+        
+        Args:
+            text: Text to speak
+        """
+        audio = generate(
+            text=text,
+            voice=self.voice,
+            api_key=self.api_key,
+            stream=False
+        )
+        filename = "tmp/" + str(uuid.uuid4()) + ".wav"
+        elevenlabs.save(audio, filename)
+        return filename
 
     def hearing(self):
         """Play a hearing sound"""
