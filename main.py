@@ -91,6 +91,7 @@ while True:
                 if called_function_name == "EndConversation":
                     console.log("Bobby: " + params['message'])
                     speak.speak(params['message'])
+                    break
                 console.log("Function call: " + called_function_name + ", Args: " + called_function_args)
                 skill_info = skill_helper.do_skill(called_function_name, params=params)
                 message = {"role": "function", "name": called_function_name, "content": skill_info}
