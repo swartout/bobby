@@ -7,6 +7,7 @@ from listen import Listen
 from utils import SkillHelper, SYSTEM_MESSAGE
 import pvporcupine
 from pvrecorder import PvRecorder
+from rich.console import Console
 
 # ---------------------------------- CONFIG ---------------------------------- #
 
@@ -44,6 +45,8 @@ ppn = pvporcupine.create(
     keyword_paths=['heybobby.ppn']
 )
 
+console = Console()
+
 recorder = PvRecorder(device_index=-1, frame_length=512)
 
 listen = Listen(API_KEY)
@@ -53,53 +56,57 @@ bobby = Bobby(SYSTEM_MESSAGE, skill_helper.get_skills(), MODEL)
 speak = Speak()
 
 while True:
-    # wait for wake word
-    print("Listening for wake word...")
-    recorder.start()
-    while True:
-        pcm = recorder.read()
-        keyword_index = ppn.process(pcm)
-        if keyword_index >= 0:
-            print("Wake word detected!")
-            recorder.stop()
-            break
-
-    speak.hearing()
-    messages = [SYSTEM_MESSAGE]
-
-    # get user input
-    voice_input = listen.listen()
-    speak.heard()
-    print("User: " + voice_input)
-    message = {"role": "user", "content": voice_input}
-    while True:
-        speak.think()
-        completion = bobby.get_response(message)
-        speak.stop_think()  # Stop the think sound
-
-        # do different things if response is chat vs function
-        if completion['finish_reason'] == 'function_call':
-            called_function_name = completion['message']["function_call"]["name"]
-            called_function_args = completion['message']["function_call"]["arguments"]
-            message = completion['message']
-            params = json.loads(called_function_args)
-            if called_function_name == "EndConversation":
-                print("Bobby: " + params['message'])
-                speak.speak(params['message'])
+    try:
+        # wait for wake word
+        console.log("Listening for wake word...")
+        recorder.start()
+        while True:
+            pcm = recorder.read()
+            keyword_index = ppn.process(pcm)
+            if keyword_index >= 0:
+                console.log("Wake word detected!")
+                recorder.stop()
                 break
-            print("Function call: " + called_function_name + ", Args: " + called_function_args)
-            skill_info = skill_helper.do_skill(called_function_name, params=params)
-            message = {"role": "function", "name": called_function_name, "content": skill_info}
-            print("Function info: " + str(skill_info))
-        elif completion['finish_reason'] == 'stop':
-            print("Bobby: " + completion['message']['content'])
-            print(completion)
-            speak.speak(completion['message']['content'])
-            speak.done()
-            message = completion['message']
-            speak.hearing()
-            voice_input = listen.listen()
-            print("User: " + voice_input)
-            message = {"role": "user", "content": voice_input}
-        else:
-            raise Exception("Invalid response type: not a function call or stop")
+
+        speak.hearing()
+        messages = [SYSTEM_MESSAGE]
+
+        # get user input
+        console.log('Listening for user input...')
+        voice_input = listen.listen()
+        speak.heard()
+        console.log("User: " + voice_input)
+        message = {"role": "user", "content": voice_input}
+        while True:
+            speak.think()
+            completion = bobby.get_response(message)
+            speak.stop_think()  # Stop the think sound
+
+            # do different things if response is chat vs function
+            if completion['finish_reason'] == 'function_call':
+                called_function_name = completion['message']["function_call"]["name"]
+                called_function_args = completion['message']["function_call"]["arguments"]
+                message = completion['message']
+                params = json.loads(called_function_args)
+                if called_function_name == "EndConversation":
+                    console.log("Bobby: " + params['message'])
+                    speak.speak(params['message'])
+                console.log("Function call: " + called_function_name + ", Args: " + called_function_args)
+                skill_info = skill_helper.do_skill(called_function_name, params=params)
+                message = {"role": "function", "name": called_function_name, "content": skill_info}
+                console.log("Function info: " + str(skill_info))
+            elif completion['finish_reason'] == 'stop':
+                console.log("Bobby: " + completion['message']['content'])
+                console.log(completion)
+                speak.speak(completion['message']['content'])
+                speak.done()
+                message = completion['message']
+                speak.hearing()
+                console.log('Listening for user input...')
+                voice_input = listen.listen()
+                console.log("User: " + voice_input)
+                message = {"role": "user", "content": voice_input}
+            else:
+                raise Exception("Invalid response type: not a function call or stop")
+    except Exception as e:
+        console.log(f"Exception: {e}")
