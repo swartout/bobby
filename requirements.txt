@@ -5,5 +5,5 @@ pvporcupine
 pvrecorder
 SpeechRecognition
 mpv
-pyaudio
 rich
+pygame

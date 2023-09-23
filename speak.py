@@ -1,9 +1,9 @@
 """Synthesizes speech from a string using Elevenlabs Text-to-Speech API."""
 from elevenlabs import generate, stream
-from playsound import playsound
 import wave
 import threading
 import pyaudio
+import pygame
 
 class Speak:
     """Speak class"""
@@ -18,6 +18,8 @@ class Speak:
         self.api_key = api_key
         self.thinking = False
         self.think_thread = None
+        pygame.init()
+        pygame.mixer.init()
         
     def _play_think(self):
         """Private method to play think.mp3 in a loop using pyAudio."""
@@ -59,11 +61,17 @@ class Speak:
 
     def hearing(self):
         """Play a hearing sound"""
-        playsound('sound/hearing.mp3')
-        
+        pygame.mixer.music.load('sound/hearing.mp3')
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
     def heard(self):
         """Play a heard sound"""
-        playsound('sound/heard.mp3')
+        pygame.mixer.music.load('sound/heard.mp3')
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
         
     def think(self):
         """Play a think sound in a loop using a separate thread."""
@@ -76,12 +84,21 @@ class Speak:
         self.thinking = False
         if self.think_thread:
             self.think_thread.join()  # Wait for the thread to finish.
-        playsound('sound/speak.mp3')
+        pygame.mixer.music.load('sound/speak.mp3')
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
     
     def speaksnd(self):
         """Play a sound right before speaking"""
-        playsound('sound/think.mp3')
+        pygame.mixer.music.load('sound/think.mp3')
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
     
     def done(self):
         """Play a done speaking sound"""
-        playsound('sound/done.mp3')
+        pygame.mixer.music.load('sound/done.mp3')
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
