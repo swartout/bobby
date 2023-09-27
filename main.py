@@ -61,7 +61,6 @@ while True:
                 break
 
         speak.hearing()
-        messages = [SYSTEM_MESSAGE]
 
         # get user input
         console.log('Listening for user input...')
@@ -83,6 +82,7 @@ while True:
                 if called_function_name == "EndConversation":
                     console.log("Bobby: " + params['message'])
                     speak.speak(params['message'])
+                    bobby.clear_messages()
                     break
                 console.log("Function call: " + called_function_name + ", Args: " + called_function_args)
                 skill_info = skill_helper.do_skill(called_function_name, params=params)
@@ -90,7 +90,7 @@ while True:
                 console.log("Function info: " + str(skill_info))
             elif completion['finish_reason'] == 'stop':
                 console.log("Bobby: " + completion['message']['content'])
-                console.log(completion)
+                # console.log(completion)
                 speak.speak(completion['message']['content'])
                 speak.done()
                 message = completion['message']
@@ -99,7 +99,10 @@ while True:
                 voice_input = listen.listen()
                 console.log("User: " + voice_input)
                 message = {"role": "user", "content": voice_input}
-            else:
-                raise Exception("Invalid response type: not a function call or stop")
+        else:
+            raise Exception("Invalid response type: not a function call or stop")
     except Exception as e:
-        console.log(f"Exception: {e}")
+        console.log("Error: " + str(e))
+        speak.speak("Sorry, I didn't get that. Please try again.")
+        speak.done()
+        continue

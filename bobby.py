@@ -1,6 +1,7 @@
 """Logic for generating a response from a user's input"""
 
 import openai
+from rich.console import Console
 
 class Bobby:
     """The virtual assistant.
@@ -22,6 +23,7 @@ class Bobby:
         self.messages = [system_message]
         self.functions = functions
         self.model = model
+        self.console = Console()
 
     def get_response(self, message):
         """Gets a response from the virtual assistant.
@@ -42,6 +44,9 @@ class Bobby:
                     message or a function call.
         """
         self.messages.append(message)
+        self.console.log('-'*10)
+        self.console.log('messages:', self.messages)
+        self.console.log('-'*10)
         if len(self.functions) != 0:
             completion = openai.ChatCompletion.create(
                 model=self.model,
@@ -53,6 +58,16 @@ class Bobby:
                 model=self.model,
                 messages=self.messages,
             )['choices'][0]
+        self.console.log('-'*10)
+        self.console.log('completion:', completion)
+        self.console.log('-'*10)
+        message = {
+            'role': 'assistant',
+            'content': completion['message']['content']
+        }
+        if completion['finish_reason'] == 'function_call':
+            message['function_call'] = completion['message']['function_call']
+        self.messages.append(message)
         return {
             'finish_reason': completion['finish_reason'],
             'message': completion['message']
